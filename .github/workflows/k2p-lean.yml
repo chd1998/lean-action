@@ -8,7 +8,7 @@
 # Description: Build OpenWrt using GitHub Actions
 #
 
-name: Build OpenWrt
+name: Build OpenWrt for K2P
 
 on:
   repository_dispatch:
@@ -17,8 +17,8 @@ on:
   push:
     branches:
       - main
-    paths:
-      - '.config'
+#    paths:
+#      - '.config'
 #  schedule:
 #    - cron: 0 8 * * 5
 #  watch:
@@ -28,10 +28,12 @@ env:
   REPO_URL: https://github.com/coolsnowwolf/lede
   REPO_BRANCH: master
   FEEDS_CONF: feeds.conf.default
-  CONFIG_FILE: .config
+  CONFIG_FILE: k2p-32M-lean.config
+  K2P_32M_MK: k2p-32M-mt7621.mk
+  K2P_32M_DTS: k2p-32M-mt7621_phicomm_k2p.dts
   DIY_P1_SH: diy-part1.sh
   DIY_P2_SH: diy-part2.sh
-  SSH_ACTIONS: false
+  SSH_ACTIONS: true
   UPLOAD_BIN_DIR: false
   UPLOAD_FIRMWARE: true
   UPLOAD_COWTRANSFER: false
@@ -100,7 +102,12 @@ jobs:
         make download -j8
         find dl -size -1024c -exec ls -l {} \;
         find dl -size -1024c -exec rm -f {} \;
-
+        
+    - name: Replace with 32M firmware files
+      run: |
+        cp -f $K2P_32M_MK openwrt/target/linux/ramips/image/mt7621.mk 
+        cp -f $K2P_32M_DTS openwrt/target/linux/ramips/dts/mt7621_phicomm_k2p.dts 
+        
     - name: Compile the firmware
       id: compile
       run: |
